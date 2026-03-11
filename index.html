@@ -5,28 +5,72 @@
   <title>Lights Out - Phaser.js</title>
 <script src="https://cdn.jsdelivr.net/npm/phaser@v3.90.0/dist/phaser.min.js" crossorigin="anonymous"></script>
   <style>
-    body { margin: 0; display: flex; justify-content: center; align-items: center; background: #222; }
+    body { margin: 10; flex-wrap: wrap; display: flex; justify-content: center; align-items: center; background: #222; color:#FFCC00; font-size: 18px;}
     canvas { border: 2px solid #444; }
+    button { background: #222222; color: #FFCC00; border-radius: 10px; padding: 4px;margin:4px;border:3px solid #FFCC00; font-size:18px; }
   </style>
 </head>
 <body>
+  <div style="margin:10px;padding:10px;font-size: 18px;">
+  Grid Size: <input id="grid_size" type="number" value="3"/><br>
+  <button onclick="create()">Create</button>
+  <br>
+  Game Type:
+  <button onclick="setType('lights_out')">Lights Out</button>
+  <button onclick="setType('flip')">Flip</button>
+  <br>
+  <button onclick="cheat()">Cheat</button><br>
+  </div><br>
   <div id="game"></div>
+  <div id="cheat" style="width:90%;overflow:auto;"></div>
   <script src="lights_out.js"></script>
 </body>
 <script>
 
-
 // Game configuration
-const config = {
-  type: Phaser.AUTO,
-  width: 340,
-  height: 340,
-  backgroundColor: '#111',
-  scene: [LightsOutScene],
-  parent: 'game'
-};
-
+let gg = null
+let gtype = 'lights_out'
+function create() {
+  if (gg) {
+    gg.destroy(true,false)   
+  }
+  document.getElementById("cheat").innerHTML = ""
+  let grid_size = document.getElementById("grid_size").valueAsNumber
+  let config = {
+    type: Phaser.AUTO,
+    width: 340,
+    height: 380,
+    backgroundColor: '#111',
+    // scene: [LightsOutScene],
+    parent: 'game',
+    disableContextMenu: true,
+    callbacks: {
+      preBoot: (game) => {
+          game.scene.add('LightsOutScene', LightsOutScene, true, { 
+            grid_size: grid_size,
+            type: gtype,
+          });
+      },
+    },
+  };
+  gg = new Phaser.Game(config);   
+}
 // Start the game
-const gg = new Phaser.Game(config);   
+
+function setType(type) {
+  gtype = type
+  create();
+}
+
+function cheat() {
+  if (gg) {
+    document.getElementById("cheat").innerHTML = 
+    "<pre>column,row\n" + gg.scene.scenes[0].moves.join(" : ") + "\n</pre>"
+  }
+}
+
+window.addEventListener('load', function() {
+  create();
+})
 </script>
 </html>   
