@@ -12,6 +12,8 @@ class LightsOutScene extends Phaser.Scene {
     }
     // console.log(this.config)
     if (!this.config.move_count) { this.config.move_count = this.config.grid_size * 2; }
+    if (this.config.grid_size > 9) { this.config.grid_size = 9 }
+    if (this.config.grid_size < 3) { this.config.grid_size = 3 }
     this.lights_off = true
     this.buttons = []
     this.moves = []
