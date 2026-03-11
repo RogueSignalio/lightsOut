@@ -11,15 +11,21 @@
   </style>
 </head>
 <body>
-  <div style="margin:10px;padding:10px;font-size: 18px;">
-  Grid Size: <input id="grid_size" type="number" value="3" max="9" min="3" /><br>
+  <div style="margin:10px;padding:10px;font-size: 18px;width:250px;">
+  Grid Size: <input id="grid_size" type="number" value="5" max="9" min="3" /><br>
   <button onclick="create()">Create</button>
   <br>
   Game Type:
   <button onclick="setType('lights_out')">Lights Out</button>
-  <button onclick="setType('flip')">Flip</button>
+  <button onclick="setType('lights_on')">Lights On</button>
+  <button onclick="setType('flip_out')">Flip Out</button>
+  <button onclick="setType('flip_on')">Flip On</button>
+  <button onclick="setType('flipped_out')">Flipped Out</button>
+  <button onclick="setType('flipped_on')">Flipped On</button>
   <br>
-  <button onclick="cheat()">Cheat</button><br>
+  <hr>
+  <button onclick="cheat()">Cheat</button> |
+  <button onclick="solve()">Solve</button><br>
   </div><br>
   <div id="game"></div>
   <div id="cheat" style="width:90%;overflow:auto;"></div>
@@ -67,6 +73,10 @@ function cheat() {
     document.getElementById("cheat").innerHTML = 
     "<pre>column,row\n" + gg.scene.scenes[0].moves.join(" : ") + "\n</pre>"
   }
+}
+
+function solve() {
+    gg.scene.scenes[0].solve(600)
 }
 
 window.addEventListener('load', function() {

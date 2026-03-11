@@ -14,6 +14,21 @@ class LightsOutScene extends Phaser.Scene {
     if (!this.config.move_count) { this.config.move_count = this.config.grid_size * 2; }
     if (this.config.grid_size > 9) { this.config.grid_size = 9 }
     if (this.config.grid_size < 3) { this.config.grid_size = 3 }
+    if (this.config.type.match(/_on/i)) {
+      this.config.tile_swap = true
+    } else {
+      this.config.tile_swap = false      
+    }
+    if (this.config.type.match(/flip_/i)) {
+      this.config.pattern_action = this.simpleRandomPatterns //function() { this.simpleRandomPatterns(); }
+      this.config.show_pattern = true
+    } else if (this.config.type.match(/flipped_/i)) {
+      this.config.pattern_action = this.complexRandomPatterns //function() { this.complexRandomPatterns(); }
+      this.config.show_pattern = true
+    } else {
+      this.config.pattern_action = this.normalPattern //function() { this.normalPattern(); }
+      this.config.show_pattern = false
+    }
     this.lights_off = true
     this.buttons = []
     this.moves = []
@@ -25,8 +40,13 @@ class LightsOutScene extends Phaser.Scene {
     }
 
     // Optional: Load assets if using custom sprites
-     this.load.image('light_on', './lights_on.png');
-     this.load.image('light_off', './lights_off.png');
+    if (this.config.tile_swap) {
+      this.load.image('light_off', './lights_on.png');
+      this.load.image('light_on', './lights_off.png');
+    } else {
+      this.load.image('light_on', './lights_on.png');
+      this.load.image('light_off', './lights_off.png');      
+    }
   }
 
   create() {
@@ -87,12 +107,12 @@ class LightsOutScene extends Phaser.Scene {
     }
 
     // Add win text (hidden initially)
-    this.winText = this.add.text(this.board_width/2, this.board_height/2, 'All lights off! You win!', {
+    this.winText = this.add.text(this.board_width/2, this.board_height/2, 'You win!', {
       fontSize: '20px',
       fill: '#00ff00',
       backgroundColor: '#000000',
       fontStyle: 'bold'
-    }).setOrigin(0.5);
+    }).setOrigin(0.9);
     this.winText.setVisible(false);
 
     this.addButton(
@@ -135,6 +155,21 @@ class LightsOutScene extends Phaser.Scene {
     this.buttons[name].on('pointerdown', ondown);
   }
 
+  solve(timems=1000,solve_pos=0) {
+    this.solve_pos = solve_pos
+
+    if (!!this.moves[this.solve_pos]) {
+      this.toggleTile(this.moves[this.solve_pos][0]-1,this.moves[this.solve_pos][1]-1)
+      solve_pos = this.solve_pos = this.solve_pos + 1
+      setTimeout(function() { 
+        this.solve(timems,this.solve_pos) 
+      }.bind(this),timems)
+    } else {
+      this.checkWin()
+      this.solve_pos = 0
+    }
+  }
+
   createBoard(move_count=10) {
     this.winText.setVisible(false);
     // console.log(JSON.stringify(this.grid))
@@ -145,13 +180,14 @@ class LightsOutScene extends Phaser.Scene {
     for (let y = 0; y < this.config.grid_size; y++) {
       for (let x = 0; x < this.config.grid_size; x++) {
         this.source_grid[y][x] = false; 
-        if (this.config.type == 'flip') {
-          this.patterns[y][x] = this.generateRandomPatterns();
-        } else {
-          this.patterns[y][x] = this.normalPattern();
-        }
+        this.patterns[y][x] = this.config.pattern_action()
+        // if (this.config.type == 'flip') {
+        //   this.patterns[y][x] = this.generateRandomPatterns();
+        // } else {
+        //   this.patterns[y][x] = this.normalPattern();
+        // }
         this.overlay[y][x].clear()
-        if (this.config.type == 'flip') {
+        if (this.config.show_pattern) {
           this.setOverlay(x,y)
         }
       }
@@ -181,12 +217,28 @@ class LightsOutScene extends Phaser.Scene {
     this.checkWin();
   }
 
-  generateRandomPatterns() {
+  simpleRandomPatterns() {
     // Random pattern: which neighbors to flip (dx, dy)
     const dirs = [
         { dx: 0, dy: 0 }, // self
         { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
         { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+    ];
+    let pattern = [];
+    for (let i = 0; i < dirs.length; i++) {
+      if (Math.random() > 0.5) pattern.push(dirs[i]);
+    }
+    return pattern
+  }
+
+  complexRandomPatterns() {
+    // Random pattern: which neighbors to flip (dx, dy)
+    const dirs = [
+        { dx: 0, dy: 0 }, // self
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 }, { dx: 0, dy: -1 },
+        { dx: 1, dy: 1 }, { dx: -1, dy: 1 },
+        { dx: 1, dy: -1 }, { dx: -1, dy: -1 },
     ];
     let pattern = [];
     for (let i = 0; i < dirs.length; i++) {
@@ -230,7 +282,6 @@ class LightsOutScene extends Phaser.Scene {
     const neighbors = this.patterns[y][x]
 
     for (const { dx, dy } of neighbors) {
-console.log(tx + ',' + ty)
       let txp = tx + (dx * (this.tile_size/2.5 - 5) - 6) // this.tile_spacing
       let typ = ty + (dy * (this.tile_size/2.5 - 5) - 6) //+ this.tile_spacing
       this.overlay[y][x].fillStyle(0xeeeeee, 0.6).fillRect(
@@ -253,7 +304,9 @@ console.log(tx + ',' + ty)
     if (this.tiles[y][x].type === 'Image') {
       this.tiles[y][x].setTexture(this.grid[y][x] ? 'light_on' : 'light_off');
     } else {
-      this.tiles[y][x].setFillStyle(this.grid[y][x] ? 0xffff00 : 0x333333);
+      let on = (this.config.tile_swap) ? 0x333333 : 0xffff00
+      let off = (this.config.tile_swap) ? 0xffff00 : 0x333333      
+      this.tiles[y][x].setFillStyle(this.grid[y][x] ? on : off);
     }
     if (over && this.config.type == 'flip') {
       this.setOverlay(x,y)
@@ -262,6 +315,7 @@ console.log(tx + ',' + ty)
   }
 
   resetBoard() {
+    this.winText.setVisible(false);
     for (let y = 0; y < this.config.grid_size; y++) {
       for (let x = 0; x < this.config.grid_size; x++) {
         this.grid[y][x] = this.source_grid[y][x]; 
