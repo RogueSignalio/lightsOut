@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Lights Out - Phaser.js</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Lights Out - Phaser.js</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
 <script src="https://cdn.jsdelivr.net/npm/phaser@v3.90.0/dist/phaser.min.js" crossorigin="anonymous"></script>
   <style>
-    body { margin: 10; flex-wrap: wrap; display: flex; justify-content: center; align-items: center; background: #222; color:#FFCC00; font-size: 18px;}
+    html { font-size: 16px; }
+    body { margin: 10; flex-wrap: wrap; display: flex; justify-content: center; align-items: center; }
     canvas { border: 2px solid #444; }
-    button { background: #222222; color: #FFCC00; border-radius: 10px; padding: 4px;margin:4px;border:3px solid #FFCC00; font-size:18px; }
+    button { background: #222222; color: #FFCC00; font-size:14px; min-width: auto;
+              border-radius: 10px; padding: 3px;margin:3px;border:3px solid #FFCC00; }
+    input { background: #222222; color: #FFCC00; font-size: 20px; }
   </style>
 </head>
 <body>
-  <div style="margin:10px;padding:10px;font-size: 18px;width:250px;">
-  Grid Size: <input id="grid_size" type="number" value="5" max="9" min="3" /><br>
+  <div style="margin:5px;padding:5px;font-size:16px;width:90%;">
+  Grid Size: <input id="grid_size" type="number" value="5" max="9" min="3" /> | 
   <button onclick="create()">Create</button>
   <br>
   Game Type:
@@ -23,12 +28,13 @@
   <button onclick="setType('flipped_out')">Flipped Out</button>
   <button onclick="setType('flipped_on')">Flipped On</button>
   <br>
-  <hr>
-  <button onclick="cheat()">Cheat</button> |
-  <button onclick="solve()">Solve</button><br>
   </div><br>
   <div id="game"></div>
+  <div style="margin:5px;padding:5px;font-size:16px;width:90%;">
+  <button onclick="cheat()">Cheat</button> |
+  <button onclick="solve()">Solve</button><br>
   <div id="cheat" style="width:90%;overflow:auto;"></div>
+  </div>
   <script src="lights_out.js"></script>
 </body>
 <script>
@@ -44,8 +50,8 @@ function create() {
   let grid_size = document.getElementById("grid_size").valueAsNumber
   let config = {
     type: Phaser.AUTO,
-    width: 400,
-    height: 440,
+    width: 340,
+    height: 380,
     backgroundColor: '#111',
     // scene: [LightsOutScene],
     parent: 'game',
