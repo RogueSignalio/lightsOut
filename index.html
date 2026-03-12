@@ -7,16 +7,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
 <script src="https://cdn.jsdelivr.net/npm/phaser@v3.90.0/dist/phaser.min.js" crossorigin="anonymous"></script>
   <style>
-    html { font-size: 16px; }
+    html { font-size: 14px; }
     body { margin: 10; flex-wrap: wrap; display: flex; justify-content: center; align-items: center; }
     canvas { border: 2px solid #444; }
-    button { background: #222222; color: #FFCC00; font-size:14px; min-width: auto;
+    button { background: #222222; color: #FFCC00; font-size:15px; min-width: auto;
               border-radius: 10px; padding: 3px;margin:3px;border:3px solid #FFCC00; }
     input { background: #222222; color: #FFCC00; font-size: 20px; }
+    div { font-size:14px; }
   </style>
 </head>
 <body>
-  <div style="margin:5px;padding:5px;font-size:16px;width:90%;">
+  <div style="margin:5px;padding:5px;width:90%;">
   Grid Size: <input id="grid_size" type="number" value="5" max="9" min="3" /> | 
   <button onclick="create()">Create</button>
   <br>
@@ -30,7 +31,7 @@
   <br>
   </div><br>
   <div id="game"></div>
-  <div style="margin:5px;padding:5px;font-size:16px;width:90%;">
+  <div style="margin:5px;padding:5px;width:90%;">
   <button onclick="cheat()">Cheat</button> |
   <button onclick="solve()">Solve</button><br>
   <div id="cheat" style="width:90%;overflow:auto;"></div>
@@ -51,7 +52,7 @@ function create() {
   let config = {
     type: Phaser.AUTO,
     width: 340,
-    height: 380,
+    height: 390,
     backgroundColor: '#111',
     // scene: [LightsOutScene],
     parent: 'game',

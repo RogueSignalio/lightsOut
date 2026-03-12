@@ -21,6 +21,7 @@ class LightsOutScene extends Phaser.Scene {
       enable_reroll: true,
       enable_clear: true,
       audio_engine: null,
+      minimized_scripts: false,      
       win_action: function(t) { t.winText.setVisible(true); },
       on_move_audio: function() { 
         //console.log(this)
@@ -29,7 +30,7 @@ class LightsOutScene extends Phaser.Scene {
         // this.play_sound_unqiue('move2',{ detune: 100 }) 
       }.bind(this),
       on_win_audio: function() { this.play_sound('win') }.bind(this),
-      on_start_audio: function() { this.play_sound('start') }.bind(this),
+      on_start_audio: function() { this.play_sound('start',{ detune: 200 }) }.bind(this),
       ...config
     }
     // console.log(this.config)
@@ -348,14 +349,15 @@ class LightsOutScene extends Phaser.Scene {
     let tw = tile.width 
     let th = tile.height
     let depth = this.config.grid_size * this.config.grid_size + 100
+    let size = 15 - this.config.grid_size
     const neighbors = this.patterns[y][x]
 
     for (const { dx, dy } of neighbors) {
-      let txp = tx + (dx * (this.tile_size/2.5 - 5) - 6) // this.tile_spacing
-      let typ = ty + (dy * (this.tile_size/2.5 - 5) - 6) //+ this.tile_spacing
-      this.overlay[y][x].fillStyle(0xeeeeee, 0.6).fillRect(
-         txp, typ, 10, 10
-      ).lineStyle(1, 0x000000, 0.6).strokeRect(txp,typ,10,10).setDepth(depth) //.setStrokeStyle(1, 0xaaaaaa);
+      let txp = tx + (dx * (this.tile_size/2 - size/2) - size/2) // this.tile_spacing
+      let typ = ty + (dy * (this.tile_size/2 - size/2) - size/2) //+ this.tile_spacing
+      this.overlay[y][x].fillStyle(0xeeeeee, 0.75).fillRect(
+         txp, typ, size, size,
+      ).lineStyle(1, 0x000000, 0.6).strokeRect(txp,typ,size,size).setDepth(depth) //.setStrokeStyle(1, 0xaaaaaa);
     }
 
   }
