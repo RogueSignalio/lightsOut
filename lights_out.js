@@ -238,6 +238,7 @@ class LightsOutScene extends Phaser.Scene {
 
     if (!!this.moves[this.solve_pos]) {
       this.toggleTile(this.moves[this.solve_pos][0]-1,this.moves[this.solve_pos][1]-1)
+      this.config.on_move_audio()
       solve_pos = this.solve_pos = this.solve_pos + 1
       setTimeout(function() { 
         this.solve(timems,this.solve_pos) 
