@@ -6,6 +6,8 @@
 <title>Lights Out - Phaser.js</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
 <script src="https://cdn.jsdelivr.net/npm/phaser@v3.90.0/dist/phaser.min.js" crossorigin="anonymous"></script>
+<script src="lights_out.js"></script>
+
   <style>
     html { font-size: 14px; }
     body { margin: 10; flex-wrap: wrap; display: flex; justify-content: center; align-items: center; }
@@ -30,29 +32,32 @@
   <button onclick="setType('flipped_on')">Flipped On</button>
   <br>
   </div><br>
-  <div id="game"></div>
+  <div id="game" style="width:300px;height:340px;"></div>
   <div style="margin:5px;padding:5px;width:90%;">
   <button onclick="cheat()">Cheat</button> |
   <button onclick="solve()">Solve</button><br>
   <div id="cheat" style="width:90%;overflow:auto;"></div>
   </div>
-  <script src="lights_out.js"></script>
 </body>
 <script>
 
 // Game configuration
 let gg = null
 let gtype = 'lights_out'
+
 function create() {
   if (gg) {
     gg.destroy(true,false)   
   }
+  let d_width = document.getElementById('game').clientWidth
+  let d_height = document.getElementById('game').clientHeight
+
   document.getElementById("cheat").innerHTML = ""
   let grid_size = document.getElementById("grid_size").valueAsNumber
   let config = {
     type: Phaser.AUTO,
-    width: 340,
-    height: 390,
+    width: d_width,
+    height: d_height,
     backgroundColor: '#111',
     // scene: [LightsOutScene],
     parent: 'game',
@@ -62,6 +67,9 @@ function create() {
           game.scene.add('LightsOutScene', LightsOutScene, true, { 
             grid_size: grid_size,
             type: gtype,
+            // enable_restart: true,
+            // enable_reroll: false,
+            // enable_clear: false,
           });
       },
     },

@@ -11,6 +11,7 @@ class LightsOutScene extends Phaser.Scene {
       light_off_image: 'lights_off.png',
       image_path: './',
       audio_path: './',
+      auto_size: false,
       sounds: {
         move: 'lights_out_move_b.mp3',
         // move2: 'lights_out_move2.mp3',
@@ -22,7 +23,12 @@ class LightsOutScene extends Phaser.Scene {
       enable_clear: true,
       audio_engine: null,
       minimized_scripts: false,      
-      win_action: function(t) { t.winText.setVisible(true); },
+      disable_audio: false,
+      audio_lib_path: './',
+      win_action: function(t) { 
+        t.winText.setVisible(true); 
+        t.hideControls()
+      },
       on_move_audio: function() { 
         //console.log(this)
         //console.log(this.audio_engine.play_sound_unqiue)
@@ -39,6 +45,8 @@ class LightsOutScene extends Phaser.Scene {
     this.plugins = {}
     this.config.modules_path = '.'
     this.key = 'lightsout'
+    this.audio_local = false
+    this.audio_loaded = false
     if (!this.config.move_count) { this.config.move_count = this.config.grid_size * 2; }
     if (this.config.grid_size > 9) { this.config.grid_size = 9 }
     if (this.config.grid_size < 3) { this.config.grid_size = 3 }
@@ -58,15 +66,20 @@ class LightsOutScene extends Phaser.Scene {
       this.config.show_pattern = false
     }
     this.lights_off = true
-    this.buttons = []
+    this.buttons = {}
+    this.texts = {}
     this.moves = []
     if (this.config.audio_engine == null) {
-      this.load_script('puzzleaudio',()=> {
+      this.load_script(this.config.audio_lib_path + 'puzzleaudio',()=> {
         this.audio_engine = new Puzzleaudio()
         this.game.scene.add('audio_engine', this.audio_engine, true, {} );
         this.game.audio_engine = this.audio_engine
       })
+      this.audio_local = true
+    } else {
+      this.game.audio_engine = this.audio_engine = this.config.audio_engine
     }
+
   }
 
   preload() {
@@ -87,20 +100,45 @@ class LightsOutScene extends Phaser.Scene {
     }
 
     this.load.setPath(this.config.audio_path);
+
     Object.entries(this.config.sounds).forEach(([key, value]) => {
       if (value) { 
-        this.load.audio(`lightsout_${key}_snd`,value);
-        console.log(`lightsout_${key}_snd`,value)
+        console.log(`lightsout_${key}_snd`,this.config.audio_path + value)
+        if (this.audio_local == true) {
+          this.load.audio(`lightsout_${key}_snd`,value);
+        } else {
+          this.audio_engine.sound_queue(`lightsout_${key}_snd`,value,this.key)
+        }
       }
     })
+
+    if (this.audio_local == true) {
+      this.audio_loaded = true
+    } else {
+      this.config.audio_engine.sound_queue_load(function(){ this.audio_loaded = true; })
+    }
   }
 
   create() {
+    this.timer = this.time.addEvent({
+        delay: 300,
+        callback: function() {
+          if (this.audio_loaded == true) { this.startGame(); }
+        },
+        callbackScope: this,
+        loop: true
+    });
+  }
+
+  startGame() {
+    this.timer.remove()
     this.game.plugins = this.plugins
     Object.entries(this.config.sounds).forEach(([key, value]) => { 
       if (value) { 
         this.audio_keys.push(key)
-        this.audio_engine.add_sound(`lightsout_${key}_snd`,this.key)
+        if (this.audio_local == true) {
+          this.audio_engine.add_sound(`lightsout_${key}_snd`,this.key)
+        }
       }
     })
 
@@ -163,39 +201,56 @@ class LightsOutScene extends Phaser.Scene {
     }
 
     // Add win text (hidden initially)
-    this.winText = this.add.text(this.board_width/2, this.board_height/2, 'You win!', {
-      fontSize: '30px',
-      fill: '#00ff00',
-      backgroundColor: '#000000',
-      fontStyle: 'bold'
-    }).setOrigin(0.5,0.5);
+    this.winText = this.addText(
+      this.board_width/2, 
+      this.board_height - 24, 8,
+      'win', 'Completed!'
+    )
+    // this.add.text(
+    //   this.board_width/2, 
+    //   //this.board_height/2, 
+    //   this.board_height - 30,
+    //   'Complete!', {
+    //     fontSize: '30px',
+    //     fill: '#00ff00',
+    //     backgroundColor: '#000000',
+    //     fontStyle: 'bold'
+    // }).setOrigin(0.5,0.5);
     this.winText.setVisible(false);
+
+    this.controls = []
 
     if (this.config.enable_restart) {
       this.addButton(
         this.config.tile_spacing, 
-        this.board_height - 40, 8, 'restart', 'RESTART',
+        this.board_height - 36, 8, 'restart', 'RESTART',
         () => this.resetBoard()
       );
     }
 
-    if (this.config.enable_restart) {
+    if (this.config.enable_reroll) {
       this.addButton(
         this.config.tile_spacing + (this.board_width/3), 
-        this.board_height - 40, 8, 'reroll', 'RE-ROLL',
+        this.board_height - 36, 8, 'reroll', 'RE-ROLL',
         () => this.createBoard(this.config.move_count)
       );
     }
 
-    if (this.config.enable_restart) {
+    if (this.config.enable_clear) {
       this.addButton(
         this.config.tile_spacing + (this.board_width/3) * 2, 
-        this.board_height - 40, 8, 'clear', 'CLEAR',
+        this.board_height - 36, 8, 'clear', 'CLEAR',
         () => this.clearBoard()
       );
     }
 
     this.createBoard(this.config.move_count);
+  }
+
+  hideControls() {
+    Object.entries(this.buttons).forEach(([key, value]) => {
+      this.buttons[key].setVisible(false);
+    })
   }
 
   disableLights() {
@@ -212,6 +267,25 @@ class LightsOutScene extends Phaser.Scene {
         this.tiles[y][x].setInteractive();
       }
     }
+  }
+
+  addText(x,y,pad,name,text) {
+    // this.add.roundRectangle(0, 0, 300, 150, 20, 0x222222);
+    this.texts[name] = this.add.text(
+      x, 
+      y, 
+      text, {
+        fontSize: '18px',
+        fontStyle: 'bold',
+        fill: '#22ff88',
+        backgroundColor: '#000000',
+        //stroke: '#ddaa00',
+        //strokeThickness: 2,
+        padding: { x: pad, y: pad/2 }
+      }
+    ).setOrigin(0.5,0.5).setAlpha(0.95);
+    this.texts[name].preFX.addGlow(0X00ff55, 8, 0, false);
+    return this.texts[name]
   }
 
   addButton(x,y,pad,name,text,ondown=function(){}) {
@@ -231,6 +305,7 @@ class LightsOutScene extends Phaser.Scene {
     ).setOrigin(0,0).setInteractive().setAlpha(0.95);
     this.buttons[name].preFX.addGlow(0Xddaa00, 8, 0, false);
     this.buttons[name].on('pointerdown', ondown);
+    return this.buttons[name]
   }
 
   solve(timems=1000,solve_pos=0) {
@@ -414,14 +489,7 @@ class LightsOutScene extends Phaser.Scene {
 
   load_script(name,onload=null) {
     if (this.config.preload) { window.lightsout_loaded[name] = true; }
-    // else {
-      // if (!window.lightsout_loaded[name]) {
-      //   this.load_script(name, ()=>{
-           this.insert_script(name,onload)
-      //   })
-      // }
-//      else { this.insert_script(name,onload) }
-    // }
+    this.insert_script(name,onload)
   }
 
   insert_script(name,onload=()=>{ }) {
